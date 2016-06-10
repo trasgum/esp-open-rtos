@@ -20,12 +20,12 @@
 //   https://www.kernel.org/pub/software/scm/git/docs/git-update-index.html
 //
 
-#error "You need to enter your wifi credentials in this file and follow the instructions here to keep the password safe from Github commits."
+// #error "You need to enter your wifi credentials in this file and follow the instructions here to keep the password safe from Github commits."
 
 #ifndef __SSID_CONFIG_H__
 #define __SSID_CONFIG_H__
 
-#define WIFI_SSID "mywifissid"
-#define WIFI_PASS "my secret password"
+#define WIFI_SSID "JAZZTEL_5D66"
+#define WIFI_PASS "8A3694C22E78A8378257"
 
 #endif // __SSID_CONFIG_H__

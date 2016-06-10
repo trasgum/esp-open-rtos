@@ -26,7 +26,8 @@ FIRMWARE_DIR ?= $(PROGRAM_DIR)firmware/
 # esptool.py from https://github.com/themadinventor/esptool
 ESPTOOL ?= esptool.py
 # serial port settings for esptool.py
-ESPPORT ?= /dev/ttyUSB0
+# ESPPORT ?= /dev/ttyUSB0
+ESPPORT ?= /dev/cu.SLAB_USBtoUART
 ESPBAUD ?= 115200
 
 # firmware tool arguments

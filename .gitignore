@@ -4,9 +4,11 @@
 GPATH
 GRTAGS
 GTAGS
+tags
 build
 firmware
 .gdb_history
 local.mk
 local.h
 screenlog.*
+*.swp
