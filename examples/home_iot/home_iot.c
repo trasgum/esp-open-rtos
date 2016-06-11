@@ -63,6 +63,12 @@ void read_temperature(void *pvParameters)
                     uint32_t addr1 = addrs[j];
                     float temp_c = temps[j];
                     float temp_f = (temp_c * 1.8) + 32;
+
+                    sensor.addr0 = addr0;
+                    sensor.addr1 = addr1;
+                    sensor.temp_c = temp_c;
+                    sensor.temp_f = temp_f;
+
                     // TODO: create a structure with: addr0, addr1, temp_c to send to the queue
                     //printf("  Sensor %08x%08x reports %f deg C (%f deg F)\n", addr0, addr1, temp_c, temp_f);
                     xQueueSend(*q_temp, &temp_c, 0);
