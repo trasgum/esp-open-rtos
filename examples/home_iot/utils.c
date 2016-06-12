@@ -31,6 +31,91 @@ int xstrsearch ( char * s1, char * s2 )
     return -1 ;
 }
 
+int http_request_ip(char *ip, int port, http_request request, char *response)
+{
+    int socket_fd, request_size, r;
+    struct sockaddr_in server;
+    static char recv_buf[256];
+
+    socket_fd = socket(AF_INET , SOCK_STREAM , 0);
+    if(socket_fd < 0) {
+       printf("Failed to create socket\n");
+       return -1;
+    }
+    server.sin_addr.s_addr = inet_addr(ip);
+    server.sin_family = AF_INET;
+    server.sin_port = htons( port );
+
+    if (connect(socket_fd , (struct sockaddr *)&server , sizeof(server)) < 0) {
+        printf("connect error\n");
+        close(socket_fd);
+        return -2;
+    }
+
+    request_size = 41 + sizeof(request);
+    if(xPortGetFreeHeapSize() < request_size) {
+            printf("No memory to handle request");
+        close(socket_fd);
+        return -4;
+    }
+    char * request_str = pvPortMalloc(request_size);
+
+    /*
+     * $VERB $URI HTTP/$VERSION\r\n
+     * Host: $IP\r\n
+     * User Agent: esp-8266\r\n
+     * \r\n
+     * $MESSAGE
+     *
+     * template_lenght = 41
+     */
+
+     strcat(request_str, request.verb);
+     strcat(request_str, " ");
+     strcat(request_str, request.uri);
+     strcat(request_str, " ");
+     strcat(request_str, "HTTP/");
+     strcat(request_str, request.version);
+     strcat(request_str, "\r\n");
+
+     strcat(request_str, "Host: ");
+     strcat(request_str, ip);
+     strcat(request_str, "\r\n");
+
+     strcat(request_str, "User Agent: esp-8266\r\n");
+     strcat(request_str, "\r\n");
+
+     if(request.message != NULL || strlen(request.message) > 0) {
+         strcat(request_str, request.message);
+         strcat(request_str, "\r\n");
+     }
+     strcat(request_str, "\r\n");
+
+     if( send(socket_fd , request_str, strlen(request_str) , 0) < 0) {
+        printf("Failed to send request\n");
+        close(socket_fd);
+        return -3;
+     }
+
+     if(xPortGetFreeHeapSize() < 1000) {
+         printf("No memory to handle response");
+         close(socket_fd);
+         return -4;
+     }
+     char * recv_response = pvPortMalloc(1000);
+     do {
+         bzero(recv_buf, 256);
+         r = read(socket_fd, recv_buf, 255);
+         if(r > 0 && r + strlen(response) < 1000) {
+             response = strcat(recv_response, recv_buf);
+         }
+     } while(r > 0);
+
+     response = recv_response;
+     return strlen(recv_response);
+
+}
+
 int http_get_time (char *ip_addr, int *port)
 {
     int socket_fd, time_header_pos, r;
@@ -64,7 +149,11 @@ int http_get_time (char *ip_addr, int *port)
        return -3;
    }
 
-   //TODO check realloc ??
+   if(xPortGetFreeHeapSize() < 1000) {
+        printf("No memory to handle response");
+        close(socket_fd);
+        return -4;
+   }
    char * response = pvPortMalloc(1000);
    printf("\n\nLast data received: %d", strlen(response));
    do {
@@ -72,13 +161,6 @@ int http_get_time (char *ip_addr, int *port)
        r = read(socket_fd, recv_buf, 255);
        if(r > 0 && r + strlen(response) < 1000) {
            response = strcat(response, recv_buf);
-           if(response == NULL) {
-               printf("No memory to handle response");
-               close(socket_fd);
-               vPortFree(response);
-               response[0] = '\0';
-               return -4;
-           }
        }
    } while(r > 0);
 
