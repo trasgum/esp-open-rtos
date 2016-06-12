@@ -71,7 +71,8 @@ void read_temperature(void *pvParameters)
 
                     // TODO: create a structure with: addr0, addr1, temp_c to send to the queue
                     //printf("  Sensor %08x%08x reports %f deg C (%f deg F)\n", addr0, addr1, temp_c, temp_f);
-                    xQueueSend(*q_temp, &temp_c, 0);
+                    //xQueueSend(*q_temp, &temp_c, 0);
+                    xQueueSend(*q_temp, &sensor, 0);
                 }
                 // Wait for a little bit between each sample (note that the
                 // ds18b20_measure_and_read_multi operation already takes at
@@ -87,13 +88,16 @@ void print_temperature(void *pvParameters)
     xQueueHandle *q_temp = (xQueueHandle *)pvParameters;
     int time;
     while(1){
-        float temp_c;
+        //float temp_c;
+        ds18_read recv_temp;
         int port;
         port = WEB_PORT;  
 
-        if(xQueueReceive(*q_temp, &temp_c, 500)){
+        //if(xQueueReceive(*q_temp, &temp_c, 500)){
+        if(xQueueReceive(*q_temp, &recv_temp, 500)){
             time = http_get_time(WEB_SERVER, &port);
-            printf("\n[%d] Received temp: %f", time, temp_c);
+            printf("\n[%d] Received temp: %f from: %x-%x", time, 
+                    recv_temp.temp_c, recv_temp.addr0, recv_temp.addr1);
         }else {
             printf("\nNo temp received");
         }
@@ -156,7 +160,7 @@ void user_init(void)
     sdk_wifi_station_set_config(&config);
 
     //Queue management
-    tempqueue = xQueueCreate(10, sizeof(float));
+    tempqueue = xQueueCreate(10, sizeof(ds18_read));
     //mainqueue = xQueueCreate(10, sizeof(uint32_t));
     
     //Task Management
