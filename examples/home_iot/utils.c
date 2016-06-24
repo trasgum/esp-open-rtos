@@ -31,7 +31,13 @@ int xstrsearch ( char * s1, char * s2 )
     return -1 ;
 }
 
-int http_request_ip(char *ip, int port, http_request request, char *response)
+int 
+http_request_by_ip(
+        char *ip, 
+        int port, 
+        http_request *request, 
+        char *response
+        )
 {
     int socket_fd, request_size, r;
     struct sockaddr_in server;
@@ -56,10 +62,11 @@ int http_request_ip(char *ip, int port, http_request request, char *response)
     if(xPortGetFreeHeapSize() < request_size) {
             printf("No memory to handle request");
         close(socket_fd);
-        return -4;
+        return -5;
     }
     char * request_str = pvPortMalloc(request_size);
 
+    //TODO manage user headers. new F??
     /*
      * $VERB $URI HTTP/$VERSION\r\n
      * Host: $IP\r\n
@@ -70,12 +77,12 @@ int http_request_ip(char *ip, int port, http_request request, char *response)
      * template_lenght = 41
      */
 
-     strcat(request_str, request.verb);
+     strcat(request_str, request->verb);
      strcat(request_str, " ");
-     strcat(request_str, request.uri);
+     strcat(request_str, request->uri);
      strcat(request_str, " ");
      strcat(request_str, "HTTP/");
-     strcat(request_str, request.version);
+     strcat(request_str, request->version);
      strcat(request_str, "\r\n");
 
      strcat(request_str, "Host: ");
@@ -85,8 +92,8 @@ int http_request_ip(char *ip, int port, http_request request, char *response)
      strcat(request_str, "User Agent: esp-8266\r\n");
      strcat(request_str, "\r\n");
 
-     if(request.message != NULL || strlen(request.message) > 0) {
-         strcat(request_str, request.message);
+     if(request->message != NULL || strlen(request->message) > 0) {
+         strcat(request_str, request->message);
          strcat(request_str, "\r\n");
      }
      strcat(request_str, "\r\n");
@@ -180,5 +187,21 @@ int http_get_time (char *ip_addr, int *port)
    //printf("Heap status AE: %d", xPortGetFreeHeapSize());
    return (int) date;
 
+}
+
+int 
+http_post_temperature(
+    http_request *request,
+    char *ip,
+    int port
+    )
+{
+    char * response;
+    int response_code;
+
+    http_request_by_ip(ip, port, request, response);
+    //TODO PARSE response to return HTTP code
+    response_code = 200;
+    return response_code;
 }
 

@@ -104,6 +104,47 @@ void print_temperature(void *pvParameters)
     }
 }
 
+void post_temperature(
+        void *pvParameters)
+{
+    xQueueHandle *q_temp = (xQueueHandle *)pvParameters;
+    int time;
+    ds18_read recv_temp;
+    char *ip;
+    int port;
+    http_request temperature;
+
+    ip = WEB_SERVER;
+    port = WEB_PORT;
+
+    while(1){
+        if(xQueueReceive(*q_temp, &recv_temp, 500))
+        {
+            time = http_get_time(WEB_SERVER, &port);
+            //HTTP POST recv_time
+            // { "time": "123456789", "temp": "25.77"}
+            strcat(temperature.message, "{ \"time\": \"");
+            strcat(temperature.message, (char *)time);
+            strcat(temperature.message, "\", \"temperature\": \"");
+            //TODO cast float to string
+            //strcat(temperature.message, (int) recv_temp.temp_c);
+            strcat(temperature.message, "\"}");
+
+            temperature.verb = "POST";
+            temperature.uri = "/temperature";
+            temperature.version = "1.1";
+
+            if(http_post_temperature(&temperature, ip, port) < 0)
+            {
+                printf("Failed to send temp");
+            }
+        } else
+        {
+            printf("\nNo temp received");
+        }
+    }
+}
+
 void blinkled(void *pvParameters)
 {
     gpio_enable(LED_GPIO, GPIO_OUTPUT);

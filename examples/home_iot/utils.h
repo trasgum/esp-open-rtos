@@ -29,9 +29,9 @@ int xstrsearch ( char * s1, char * s2 );
  * @param request       A pointer to http_request structure
  * @param response      A pointer to a string to store server response
  *
- * @returns an integer with the response length
+ * @returns an integer with the response length or a negative number if failed
  */
-int http_request_ip(char *ip, int port, http_request request, char *response);
+int http_request_by_ip(char *ip, int port, http_request *request, char *response);
 
 /** GET POSIX time from a server
  * Performs a http GET request by IP and port to a server that responds with
@@ -40,8 +40,25 @@ int http_request_ip(char *ip, int port, http_request request, char *response);
  * @param ip_addr       A pointer to an array of host's ip address
  * @param port          A pointer to a integer of host's port
  *
- * @returns an integer with POSIX time
+ * @returns an integer with POSIX time or a negative number if failed.
  */
 int http_get_time (char *ip_addr, int *port);
+
+/** POST readed temperature 
+ * Performs a http POST request by IP and port to a server 
+ *
+ *
+ * @param request       A pointer to http_request structure
+ * @param ip_addr       A pointer to an array of host's ip address
+ * @param port          A host's port integer
+ *
+ * @returns an integer with POSIX time or a negative number if failed.
+ */
+int 
+http_post_temperature (
+    http_request *request,
+    char *ip,
+    int port
+    );
 
 #endif
